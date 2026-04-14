@@ -105,6 +105,34 @@ title_filter:
 #   blocked: ["Perth", "Adelaide"]
 #   allow_remote: true
 
+# -- LinkedIn guest-search (optional, PRIVATE FORK ONLY) --
+# Hits LinkedIn's unauthenticated jobs-guest API. Personal-use only.
+# Do NOT upstream — santifer/career-ops rejects LinkedIn scraping PRs.
+# See docs/CUSTOMIZATION.md (Portals section) for semantics, geoId lookup,
+# and f_TPR codes. Rate limiting and LinkedIn ToS apply.
+#
+# linkedin_guest_search:
+#   enabled: true
+#   request_delay_ms: 5000
+#   max_pages: 2
+#   user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
+#   searches:
+#     - name: "Head of IT Sydney"
+#       keywords: "Head of IT"
+#       geo_id: "103644278"
+#       location_text: "Sydney, New South Wales, Australia"
+#       time_range: "r604800"   # last 7 days (r86400 = 24h, r2592000 = 30d)
+#     - name: "CTO Sydney"
+#       keywords: "CTO"
+#       geo_id: "103644278"
+#       location_text: "Sydney, New South Wales, Australia"
+#       time_range: "r604800"
+#     - name: "AI Engineer AU"
+#       keywords: "AI Engineer"
+#       geo_id: "101452733"
+#       location_text: "Australia"
+#       time_range: "r86400"
+
 # -- Search queries --
 # Each query triggers a WebSearch. Use site: to filter by portal.
 # The scanner extracts title, URL, and company from results.

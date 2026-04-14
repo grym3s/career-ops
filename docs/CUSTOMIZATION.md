@@ -62,6 +62,78 @@ location_filter:
 The scan summary prints a `Filtered by location` line so you can see how
 many results the filter dropped.
 
+### linkedin_guest_search (optional, PRIVATE FORK ONLY)
+
+Hits LinkedIn's unauthenticated `jobs-guest/jobs/api/seeMoreJobPostings/search`
+endpoint to pull structured job listings the Google `site:linkedin.com/jobs`
+queries cannot reach. This is **personal-use only** and **must not be
+upstreamed** to `santifer/career-ops` — the upstream `CONTRIBUTING.md`
+explicitly rejects PRs that scrape platforms prohibiting automated access.
+
+```yaml
+linkedin_guest_search:
+  enabled: true
+  request_delay_ms: 5000
+  max_pages: 2
+  user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) ..."
+  searches:
+    - name: "Head of IT Sydney"
+      keywords: "Head of IT"
+      geo_id: "103644278"
+      location_text: "Sydney, New South Wales, Australia"
+      time_range: "r604800"
+```
+
+**Fields:**
+
+- **`enabled`** — set to `false` to skip the block without deleting it.
+- **`request_delay_ms`** — milliseconds to wait between paginated page
+  fetches. Defaults to `5000`. Do not go lower; LinkedIn rate-limits
+  aggressively.
+- **`max_pages`** — top-level default cap on pagination (each page is
+  25 results). Per-search `max_pages` overrides this. LinkedIn rarely
+  returns more than a few pages of results for guest queries.
+- **`user_agent`** — the User-Agent header to send. Use a recent Chrome
+  string. A browser-like UA is required; LinkedIn 403's on obviously
+  scripted requests.
+- **`searches`** — list of queries. Each item supports `name` (label
+  shown in errors), `keywords` (required), `geo_id`, `location_text`,
+  `time_range`, `max_pages`, and `enabled`.
+
+**Finding a `geo_id`:**
+
+The `geo_id` is LinkedIn's internal numeric ID for a region. To resolve
+a city or country name, hit the guest typeahead endpoint in a browser
+or with `curl`:
+
+```
+https://www.linkedin.com/jobs-guest/api/typeaheadHits?typeaheadType=GEO&geoTypes=POPULATED_PLACE&query=Sydney
+```
+
+Common IDs: Australia `103644278`, United States `103644278` (oversimplified —
+use the typeahead), Sydney metro area `90009524`. Cache these in your
+`portals.yml` once you have them.
+
+**`f_TPR` time range codes (`time_range`):**
+
+- `r86400` — last 24 hours
+- `r604800` — last 7 days
+- `r2592000` — last 30 days
+
+Omit `time_range` to search everything (usually too noisy).
+
+**Rate limiting and ToS:**
+
+The scanner treats HTTP `429`, `451`, and LinkedIn's custom `999`
+responses as rate-limit signals and throws a `LinkedInGuestError` with
+`code: "rate-limit"`. When one search hits a rate limit, the scanner
+aborts the remaining LinkedIn searches for that run (but keeps going
+on all other sources). Automated access technically breaches LinkedIn's
+Terms of Service — keep volume to a handful of scans per day and accept
+IP-block risk as the worst case. This feature is intended for individual
+job-seekers running personal scans, not for any form of bulk data
+collection.
+
 ## CV Template (templates/cv-template.html)
 
 The HTML template uses these design tokens:
