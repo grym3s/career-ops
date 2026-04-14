@@ -17,6 +17,10 @@
 
 import { readFileSync, writeFileSync, appendFileSync, existsSync, mkdirSync } from 'fs';
 import yaml from 'js-yaml';
+import {
+  fetchLinkedInGuestJobs,
+  LinkedInGuestError,
+} from './lib/linkedin-guest.mjs';
 const parseYaml = yaml.load;
 
 // ── Config ──────────────────────────────────────────────────────────
@@ -371,6 +375,71 @@ async function main() {
 
   await parallelFetch(tasks, CONCURRENCY);
 
+  // 4b. LinkedIn guest-search source (private-fork only; do NOT upstream)
+  const liConfig = config.linkedin_guest_search;
+  let liFetched = 0;
+  const liErrors = [];
+  if (liConfig && liConfig.enabled !== false && Array.isArray(liConfig.searches)) {
+    const liSearches = liConfig.searches.filter(s => s && s.enabled !== false);
+    const liOptions = {
+      userAgent: liConfig.user_agent,
+      requestDelayMs: liConfig.request_delay_ms ?? 5000,
+    };
+    for (const search of liSearches) {
+      try {
+        const jobs = await fetchLinkedInGuestJobs(
+          {
+            keywords: search.keywords,
+            geoId: search.geo_id,
+            locationText: search.location_text,
+            timeRange: search.time_range,
+            maxPages: search.max_pages ?? liConfig.max_pages ?? 1,
+          },
+          liOptions,
+        );
+        liFetched += jobs.length;
+        for (const job of jobs) {
+          if (!titleFilter(job.title)) {
+            totalFiltered++;
+            continue;
+          }
+          if (!locationFilter(job.location)) {
+            totalFilteredLocation++;
+            continue;
+          }
+          if (seenUrls.has(job.url)) {
+            totalDupes++;
+            continue;
+          }
+          const company = job.company || 'LinkedIn';
+          const key = `${company.toLowerCase()}::${job.title.toLowerCase()}`;
+          if (seenCompanyRoles.has(key)) {
+            totalDupes++;
+            continue;
+          }
+          seenUrls.add(job.url);
+          seenCompanyRoles.add(key);
+          newOffers.push({
+            title: job.title,
+            url: job.url,
+            company,
+            location: job.location,
+            source: 'linkedin-guest',
+          });
+        }
+      } catch (err) {
+        const label = search.name || search.keywords || 'linkedin-guest';
+        if (err instanceof LinkedInGuestError) {
+          liErrors.push({ search: label, error: `${err.code}: ${err.message}` });
+        } else {
+          liErrors.push({ search: label, error: err.message });
+        }
+        // Rate-limits are sticky — abort remaining LinkedIn searches
+        if (err instanceof LinkedInGuestError && err.code === 'rate-limit') break;
+      }
+    }
+  }
+
   // 5. Write results
   if (!dryRun && newOffers.length > 0) {
     appendToPipeline(newOffers);
@@ -383,6 +452,9 @@ async function main() {
   console.log(`${'━'.repeat(45)}`);
   console.log(`Companies scanned:     ${targets.length}`);
   console.log(`Total jobs found:      ${totalFound}`);
+  if (liConfig && liConfig.enabled !== false) {
+    console.log(`LinkedIn guest results fetched: ${liFetched}`);
+  }
   console.log(`Filtered by title:     ${totalFiltered} removed`);
   console.log(`Filtered by location:  ${totalFilteredLocation} removed`);
   console.log(`Duplicates:            ${totalDupes} skipped`);
@@ -392,6 +464,13 @@ async function main() {
     console.log(`\nErrors (${errors.length}):`);
     for (const e of errors) {
       console.log(`  ✗ ${e.company}: ${e.error}`);
+    }
+  }
+
+  if (liErrors.length > 0) {
+    console.log(`\nLinkedIn guest errors (${liErrors.length}):`);
+    for (const e of liErrors) {
+      console.log(`  ✗ ${e.search}: ${e.error}`);
     }
   }
 
