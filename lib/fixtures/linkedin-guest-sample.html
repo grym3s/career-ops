@@ -1,0 +1,77 @@
+<!--
+  Canned fixture mimicking a LinkedIn guest-API `seeMoreJobPostings/search`
+  response. The endpoint returns an HTML fragment, not a full document.
+  Structure assumptions (documented in lib/linkedin-guest.mjs):
+    - Each job card is a <li> containing a div.base-card
+    - The card has data-entity-urn="urn:li:jobPosting:{id}"
+    - The card has a base-card__full-link anchor with the apply URL
+    - Title lives in a .base-search-card__title element
+    - Company name lives in a .base-search-card__subtitle element
+    - Location lives in a .job-search-card__location element
+    - Posted date lives in a <time> element with datetime="YYYY-MM-DD"
+  These class names are based on public observations of the endpoint as of
+  early 2026. LinkedIn changes them occasionally — if the parser stops
+  returning results, inspect a fresh sample response and update the regexes.
+-->
+<li>
+  <div class="base-card relative w-full hover:no-underline focus:no-underline base-card--link base-search-card base-search-card--link job-search-card" data-entity-urn="urn:li:jobPosting:3829104721" data-search-id="abc123">
+    <a class="base-card__full-link absolute top-0 right-0 bottom-0 left-0 p-0 z-[2]" href="https://www.linkedin.com/jobs/view/head-of-engineering-at-acme-3829104721?refId=123">
+      <span class="sr-only">Head of Engineering</span>
+    </a>
+    <div class="base-search-card__info">
+      <h3 class="base-search-card__title">
+        Head of Engineering
+      </h3>
+      <h4 class="base-search-card__subtitle">
+        <a class="hidden-nested-link" href="https://www.linkedin.com/company/acme-corp">
+          Acme Corp
+        </a>
+      </h4>
+      <div class="base-search-card__metadata">
+        <span class="job-search-card__location">
+          Sydney, New South Wales, Australia
+        </span>
+        <time class="job-search-card__listdate" datetime="2026-04-12" title="2 days ago">
+          2 days ago
+        </time>
+      </div>
+    </div>
+  </div>
+</li>
+<li>
+  <div class="base-card base-search-card" data-entity-urn="urn:li:jobPosting:3829104722">
+    <a class="base-card__full-link" href="https://www.linkedin.com/jobs/view/senior-ai-engineer-at-globex-3829104722">
+      <span class="sr-only">Senior AI Engineer</span>
+    </a>
+    <div class="base-search-card__info">
+      <h3 class="base-search-card__title">Senior AI Engineer</h3>
+      <h4 class="base-search-card__subtitle">
+        <a class="hidden-nested-link" href="https://www.linkedin.com/company/globex">Globex Pty Ltd</a>
+      </h4>
+      <div class="base-search-card__metadata">
+        <span class="job-search-card__location">Remote (Australia)</span>
+        <time class="job-search-card__listdate--new" datetime="2026-04-13" title="1 day ago">1 day ago</time>
+      </div>
+    </div>
+  </div>
+</li>
+<li>
+  <div class="base-card base-search-card" data-entity-urn="urn:li:jobPosting:3829104723">
+    <a class="base-card__full-link" href="https://www.linkedin.com/jobs/view/staff-ml-engineer-at-initech-3829104723">
+      <span class="sr-only">Staff ML Engineer</span>
+    </a>
+    <div class="base-search-card__info">
+      <h3 class="base-search-card__title">
+        Staff ML Engineer &amp; Platform Lead
+      </h3>
+      <h4 class="base-search-card__subtitle">
+        <a class="hidden-nested-link" href="https://www.linkedin.com/company/initech">Initech</a>
+      </h4>
+      <div class="base-search-card__metadata">
+        <span class="job-search-card__location">Melbourne, Victoria, Australia</span>
+      </div>
+    </div>
+  </div>
+</li>
+</content>
+</invoke>
