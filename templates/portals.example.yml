@@ -349,6 +349,11 @@ search_queries:
 #   loaded providers in providers/*.mjs (ashby, greenhouse, lever — the
 #   first one whose detect() matches wins, alphabetical order).
 #
+#   Aggregator providers (adzuna, linkedin-guest) do not implement detect()
+#   and only match entries with an explicit `provider:` field. They represent
+#   one saved search each — not a single company — so set `name:` to a label
+#   that helps you recognize the query in scan output.
+#
 #   Optional fields on a tracked_companies entry:
 #     provider: <id>     — force a specific provider, skipping detect().
 #                          Useful when careers_url is ambiguous or you want
@@ -357,6 +362,36 @@ search_queries:
 #     transport: http    — reserved for future transports. Defaults to http.
 
 tracked_companies:
+
+  # -- Aggregator sources (optional) --
+  # Aggregators don't represent a specific company — each entry is one saved
+  # search. Comment out or set enabled: false if you don't want them.
+
+  # Adzuna — public Jobs API aggregating SEEK/Indeed/LinkedIn/employer feeds.
+  # Free tier 1000 req/mo at developer.adzuna.com. Requires env vars:
+  #   ADZUNA_APP_ID, ADZUNA_APP_KEY  (drop them in .env)
+  - name: "Adzuna AU senior IT"
+    provider: adzuna
+    country: au              # ISO-2; one search per country
+    keywords: "senior IT manager"
+    location: Sydney         # optional
+    distance: 50             # optional, km radius
+    sort_by: date            # date|salary|relevance
+    max_pages: 1             # 1-20, 50 results/page (Adzuna cap)
+    enabled: false
+
+  # LinkedIn guest-search — public guest endpoint, no auth required.
+  # PRIVATE-FORK ONLY: do not PR this provider upstream (santifer CONTRIBUTING
+  # rejects LinkedIn scraping). LinkedIn rate-limits hard; keep volume small.
+  - name: "LinkedIn senior IT Sydney"
+    provider: linkedin-guest
+    keywords: "senior IT"
+    location_text: Sydney    # free-text location
+    # geo_id: 102257491      # optional LinkedIn geo URN, more precise than location_text
+    time_range: r604800      # last 7 days (r86400=1d, r2592000=30d)
+    max_pages: 1             # 1-20, 25 results/page
+    enabled: false
+
 
   # -- AI Labs & LLM providers --
 

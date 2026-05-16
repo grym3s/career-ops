@@ -33,6 +33,15 @@ Copy from `templates/portals.example.yml` and customize:
 3. **search_queries**: WebSearch queries for job boards (Ashby, Greenhouse, Lever)
 4. **tracked_companies**: Companies to check directly
 
+### Aggregator providers
+
+Beyond ATS-direct scanning (Greenhouse/Ashby/Lever), two aggregator providers cover the long tail of companies that don't use those three ATSes:
+
+- **adzuna** — public Jobs API aggregating SEEK / Indeed / LinkedIn / employer feeds. Useful for non-US markets (AU enterprises, EU mid-market) where ATS-direct scanners come up short. Free 1000 req/month tier from [developer.adzuna.com](https://developer.adzuna.com). Set `ADZUNA_APP_ID` and `ADZUNA_APP_KEY` in `.env`.
+- **linkedin-guest** — public LinkedIn guest-search endpoint, no auth. Aggressive rate-limits. **Private-fork-only** — don't PR upstream.
+
+Each aggregator entry in `tracked_companies` represents one saved search, not a company. See the commented examples at the top of `tracked_companies` in `portals.example.yml`.
+
 ## CV Template (templates/cv-template.html)
 
 The HTML template uses these design tokens:
