@@ -21,6 +21,7 @@ import {
   fetchLinkedInGuestJobs,
   LinkedInGuestError,
 } from './lib/linkedin-guest.mjs';
+import { fetchAdzunaJobs, AdzunaError } from './lib/adzuna.mjs';
 const parseYaml = yaml.load;
 
 // ── Config ──────────────────────────────────────────────────────────
@@ -440,6 +441,88 @@ async function main() {
     }
   }
 
+  // 4c. Adzuna Jobs API source (first-party public API, AU-native coverage)
+  const adzunaConfig = config.adzuna;
+  let adzunaFetched = 0;
+  const adzunaErrors = [];
+  if (adzunaConfig && adzunaConfig.enabled !== false && Array.isArray(adzunaConfig.searches)) {
+    const appId = process.env.ADZUNA_APP_ID;
+    const appKey = process.env.ADZUNA_APP_KEY;
+    if (!appId || !appKey) {
+      adzunaErrors.push({
+        search: '(all)',
+        error:
+          'ADZUNA_APP_ID / ADZUNA_APP_KEY not set in environment — skipping Adzuna source',
+      });
+    } else {
+      const adzunaSearches = adzunaConfig.searches.filter(s => s && s.enabled !== false);
+      const adzunaOptions = {
+        appId,
+        appKey,
+        requestDelayMs: adzunaConfig.request_delay_ms ?? 1000,
+      };
+      for (const search of adzunaSearches) {
+        try {
+          const jobs = await fetchAdzunaJobs(
+            {
+              keywords: search.keywords,
+              country: search.country ?? adzunaConfig.country ?? 'au',
+              location: search.location,
+              distance: search.distance,
+              maxPages: search.max_pages ?? adzunaConfig.max_pages ?? 1,
+              category: search.category,
+              salaryMin: search.salary_min,
+              resultsPerPage: search.results_per_page ?? adzunaConfig.results_per_page,
+              sortBy: search.sort_by ?? adzunaConfig.sort_by,
+            },
+            adzunaOptions,
+          );
+          adzunaFetched += jobs.length;
+          for (const job of jobs) {
+            if (!titleFilter(job.title)) {
+              totalFiltered++;
+              continue;
+            }
+            if (!locationFilter(job.location)) {
+              totalFilteredLocation++;
+              continue;
+            }
+            if (seenUrls.has(job.url)) {
+              totalDupes++;
+              continue;
+            }
+            const company = job.company || 'Adzuna';
+            const key = `${company.toLowerCase()}::${job.title.toLowerCase()}`;
+            if (seenCompanyRoles.has(key)) {
+              totalDupes++;
+              continue;
+            }
+            seenUrls.add(job.url);
+            seenCompanyRoles.add(key);
+            newOffers.push({
+              title: job.title,
+              url: job.url,
+              company,
+              location: job.location,
+              source: 'adzuna',
+            });
+          }
+        } catch (err) {
+          const label = search.name || search.keywords || 'adzuna';
+          if (err instanceof AdzunaError) {
+            adzunaErrors.push({ search: label, error: `${err.code}: ${err.message}` });
+            // Auth failures won't fix themselves — abort remaining Adzuna searches
+            if (err.code === 'auth') break;
+            // Rate-limits are sticky too
+            if (err.code === 'rate-limit') break;
+          } else {
+            adzunaErrors.push({ search: label, error: err.message });
+          }
+        }
+      }
+    }
+  }
+
   // 5. Write results
   if (!dryRun && newOffers.length > 0) {
     appendToPipeline(newOffers);
@@ -454,6 +537,9 @@ async function main() {
   console.log(`Total jobs found:      ${totalFound}`);
   if (liConfig && liConfig.enabled !== false) {
     console.log(`LinkedIn guest results fetched: ${liFetched}`);
+  }
+  if (adzunaConfig && adzunaConfig.enabled !== false) {
+    console.log(`Adzuna results fetched: ${adzunaFetched}`);
   }
   console.log(`Filtered by title:     ${totalFiltered} removed`);
   console.log(`Filtered by location:  ${totalFilteredLocation} removed`);
@@ -470,6 +556,13 @@ async function main() {
   if (liErrors.length > 0) {
     console.log(`\nLinkedIn guest errors (${liErrors.length}):`);
     for (const e of liErrors) {
+      console.log(`  ✗ ${e.search}: ${e.error}`);
+    }
+  }
+
+  if (adzunaErrors.length > 0) {
+    console.log(`\nAdzuna errors (${adzunaErrors.length}):`);
+    for (const e of adzunaErrors) {
       console.log(`  ✗ ${e.search}: ${e.error}`);
     }
   }
