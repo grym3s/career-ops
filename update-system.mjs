@@ -16,7 +16,7 @@
  */
 
 import { execFileSync, execSync } from 'child_process';
-import { readFileSync, writeFileSync, existsSync, unlinkSync, rmSync } from 'fs';
+import { readFileSync, writeFileSync, existsSync, unlinkSync, rmSync, mkdirSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
@@ -109,6 +109,117 @@ const FORK_OVERRIDES = [
   // full script which would crash because it imports ./providers/_http.mjs
   // which now lives at agents/scanner/providers/.
   'scan.mjs',
+];
+
+// Upstream path translation — santifer/career-ops uses the original flat
+// layout (modes/oferta.md, scan.mjs at root, providers/ at root). This fork
+// uses the agent-first layout (agents/evaluator/prompt.md, agents/scanner/
+// scan.mjs, agents/scanner/providers/). apply() reads each entry's
+// `upstream` from FETCH_HEAD and writes its content to the `local` path,
+// preserving the fork's layout while flowing upstream improvements in.
+//
+// Pass-through entries (upstream == local) are listed explicitly too so
+// you can see the full set of paths the fork tracks against santifer in
+// one place.
+//
+// Added 2026-05-19 (LostAndLucky restructure Fix 3).
+const UPSTREAM_TRACKED_PATHS = [
+  // ── Shared rules (same path in fork) ───────────────────────────
+  { upstream: 'modes/_shared.md',          local: 'modes/_shared.md' },
+  { upstream: 'modes/_profile.template.md', local: 'modes/_profile.template.md' },
+
+  // ── Mode prompts → agent prompts ───────────────────────────────
+  { upstream: 'modes/oferta.md',         local: 'agents/evaluator/prompt.md' },
+  { upstream: 'modes/ofertas.md',        local: 'agents/evaluator/compare.md' },
+  { upstream: 'modes/scan.md',           local: 'agents/scanner/prompt.md' },
+  { upstream: 'modes/pdf.md',            local: 'agents/pdf-generator/prompt.md' },
+  { upstream: 'modes/latex.md',          local: 'agents/pdf-generator/prompt-latex.md' },
+  { upstream: 'modes/codex-review.md',   local: 'agents/codex-reviewer/prompt.md' },
+  { upstream: 'modes/apply.md',          local: 'agents/apply-helper/prompt.md' },
+  { upstream: 'modes/contacto.md',       local: 'agents/contact-writer/prompt.md' },
+  { upstream: 'modes/deep.md',           local: 'agents/deep-research/prompt.md' },
+  { upstream: 'modes/interview-prep.md', local: 'agents/interview-coach/prompt.md' },
+  { upstream: 'modes/patterns.md',       local: 'agents/pattern-analyst/prompt.md' },
+  { upstream: 'modes/followup.md',       local: 'agents/followup-planner/prompt.md' },
+  { upstream: 'modes/training.md',       local: 'agents/training-eval/prompt.md' },
+  { upstream: 'modes/project.md',        local: 'agents/project-eval/prompt.md' },
+  { upstream: 'modes/tracker.md',        local: 'agents/tracker/prompt.md' },
+
+  // ── Workflow prompts (modes/{flow}.md → workflows/{flow}/definition.md)
+  { upstream: 'modes/auto-pipeline.md', local: 'workflows/auto-pipeline/definition.md' },
+  { upstream: 'modes/batch.md',         local: 'workflows/batch-pipeline/definition.md' },
+  { upstream: 'modes/pipeline.md',      local: 'workflows/pipeline-drain/definition.md' },
+
+  // ── Scripts → agent runners (Fix 2 flattened agents/*/runners/) ─
+  { upstream: 'codex-review.mjs',      local: 'agents/codex-reviewer/codex-review.mjs' },
+  { upstream: 'generate-pdf.mjs',      local: 'agents/pdf-generator/generate-pdf.mjs' },
+  { upstream: 'generate-latex.mjs',    local: 'agents/pdf-generator/generate-latex.mjs' },
+  { upstream: 'merge-tracker.mjs',     local: 'agents/tracker/merge-tracker.mjs' },
+  { upstream: 'dedup-tracker.mjs',     local: 'agents/tracker/dedup-tracker.mjs' },
+  { upstream: 'normalize-statuses.mjs', local: 'agents/tracker/normalize-statuses.mjs' },
+  { upstream: 'verify-pipeline.mjs',   local: 'agents/tracker/verify-pipeline.mjs' },
+  { upstream: 'analyze-patterns.mjs',  local: 'agents/pattern-analyst/analyze-patterns.mjs' },
+  { upstream: 'followup-cadence.mjs',  local: 'agents/followup-planner/followup-cadence.mjs' },
+
+  // ── Provider plugins → agents/scanner/providers/ ────────────────
+  { upstream: 'providers/_http.mjs',      local: 'agents/scanner/providers/_http.mjs' },
+  { upstream: 'providers/_types.js',      local: 'agents/scanner/providers/_types.js' },
+  { upstream: 'providers/greenhouse.mjs', local: 'agents/scanner/providers/greenhouse.mjs' },
+  { upstream: 'providers/ashby.mjs',      local: 'agents/scanner/providers/ashby.mjs' },
+  { upstream: 'providers/lever.mjs',      local: 'agents/scanner/providers/lever.mjs' },
+
+  // ── Locales (modes/{lang}/ → locales/{lang}/) ──────────────────
+  { upstream: 'modes/de/_shared.md',     local: 'locales/de/_shared.md' },
+  { upstream: 'modes/de/README.md',      local: 'locales/de/README.md' },
+  { upstream: 'modes/de/angebot.md',     local: 'locales/de/agents/evaluator/prompt.md' },
+  { upstream: 'modes/de/bewerben.md',    local: 'locales/de/agents/apply-helper/prompt.md' },
+  { upstream: 'modes/de/pipeline.md',    local: 'locales/de/workflows/pipeline-drain/definition.md' },
+  { upstream: 'modes/fr/_shared.md',     local: 'locales/fr/_shared.md' },
+  { upstream: 'modes/fr/README.md',      local: 'locales/fr/README.md' },
+  { upstream: 'modes/fr/offre.md',       local: 'locales/fr/agents/evaluator/prompt.md' },
+  { upstream: 'modes/fr/postuler.md',    local: 'locales/fr/agents/apply-helper/prompt.md' },
+  { upstream: 'modes/fr/pipeline.md',    local: 'locales/fr/workflows/pipeline-drain/definition.md' },
+  { upstream: 'modes/ja/_shared.md',     local: 'locales/ja/_shared.md' },
+  { upstream: 'modes/ja/README.md',      local: 'locales/ja/README.md' },
+  { upstream: 'modes/ja/kyujin.md',      local: 'locales/ja/agents/evaluator/prompt.md' },
+  { upstream: 'modes/ja/oubo.md',        local: 'locales/ja/agents/apply-helper/prompt.md' },
+  { upstream: 'modes/ja/pipeline.md',    local: 'locales/ja/workflows/pipeline-drain/definition.md' },
+  { upstream: 'modes/ru/_shared.md',     local: 'locales/ru/_shared.md' },
+  { upstream: 'modes/ru/README.md',      local: 'locales/ru/README.md' },
+  { upstream: 'modes/ru/oferta.md',      local: 'locales/ru/agents/evaluator/prompt.md' },
+  { upstream: 'modes/ru/apply.md',       local: 'locales/ru/agents/apply-helper/prompt.md' },
+  { upstream: 'modes/ru/interview-prep.md', local: 'locales/ru/agents/interview-coach/prompt.md' },
+  { upstream: 'modes/ru/pipeline.md',    local: 'locales/ru/workflows/pipeline-drain/definition.md' },
+  { upstream: 'modes/tr/_shared.md',     local: 'locales/tr/_shared.md' },
+  { upstream: 'modes/tr/README.md',      local: 'locales/tr/README.md' },
+  { upstream: 'modes/tr/is-ilani.md',    local: 'locales/tr/agents/evaluator/prompt.md' },
+  { upstream: 'modes/tr/basvuru.md',     local: 'locales/tr/agents/apply-helper/prompt.md' },
+  { upstream: 'modes/tr/pipeline.md',    local: 'locales/tr/workflows/pipeline-drain/definition.md' },
+  { upstream: 'modes/pt/_shared.md',     local: 'locales/pt/_shared.md' },
+  { upstream: 'modes/pt/README.md',      local: 'locales/pt/README.md' },
+  { upstream: 'modes/pt/oferta.md',      local: 'locales/pt/agents/evaluator/prompt.md' },
+  { upstream: 'modes/pt/aplicar.md',     local: 'locales/pt/agents/apply-helper/prompt.md' },
+  { upstream: 'modes/pt/pipeline.md',    local: 'locales/pt/workflows/pipeline-drain/definition.md' },
+
+  // ── Pass-through (same path on both sides) ─────────────────────
+  { upstream: 'CLAUDE.md',                       local: 'CLAUDE.md' },
+  { upstream: 'AGENTS.md',                       local: 'AGENTS.md' },
+  { upstream: 'GEMINI.md',                       local: 'GEMINI.md' },
+  { upstream: 'cv-sync-check.mjs',               local: 'cv-sync-check.mjs' },
+  { upstream: 'doctor.mjs',                      local: 'doctor.mjs' },
+  { upstream: 'check-liveness.mjs',              local: 'check-liveness.mjs' },
+  { upstream: 'liveness-core.mjs',               local: 'liveness-core.mjs' },
+  { upstream: 'gemini-eval.mjs',                 local: 'gemini-eval.mjs' },
+  { upstream: 'batch/batch-prompt.md',           local: 'batch/batch-prompt.md' },
+  { upstream: 'batch/batch-runner.sh',           local: 'batch/batch-runner.sh' },
+  { upstream: 'VERSION',                         local: 'VERSION' },
+  { upstream: 'DATA_CONTRACT.md',                local: 'DATA_CONTRACT.md' },
+  { upstream: 'CONTRIBUTING.md',                 local: 'CONTRIBUTING.md' },
+  { upstream: 'README.md',                       local: 'README.md' },
+  { upstream: 'LICENSE',                         local: 'LICENSE' },
+  { upstream: 'CITATION.cff',                    local: 'CITATION.cff' },
+  { upstream: 'package.json',                    local: 'package.json' },
+  { upstream: 'writing-samples/README.md',       local: 'writing-samples/README.md' },
 ];
 
 // User layer paths — NEVER touch these (safety check).
@@ -276,29 +387,32 @@ async function check() {
 async function apply() {
   const local = localVersion();
   const force = process.argv.includes('--force');
+  const dryRun = process.argv.includes('--dry-run');
   const initialStatusPaths = new Set(gitStatusEntries().map(entry => entry.path));
 
-  // Check for lock
+  // Check for lock (skip in dry-run — read-only)
   const lockFile = join(ROOT, '.update-lock');
-  if (existsSync(lockFile)) {
-    console.error('Update already in progress (.update-lock exists). If stuck, delete it manually.');
-    process.exit(1);
+  if (!dryRun) {
+    if (existsSync(lockFile)) {
+      console.error('Update already in progress (.update-lock exists). If stuck, delete it manually.');
+      process.exit(1);
+    }
+    writeFileSync(lockFile, new Date().toISOString());
   }
 
-  // Create lock
-  writeFileSync(lockFile, new Date().toISOString());
-
   try {
-    // 1. Backup: create branch
-    const backupBranch = `backup-pre-update-${local}`;
-    try {
-      git('branch', backupBranch);
-      console.log(`Backup branch created: ${backupBranch}`);
-    } catch {
-      console.log(`Backup branch already exists (${backupBranch}), continuing...`);
+    // 1. Backup branch (skip in dry-run — no writes happen anyway).
+    if (!dryRun) {
+      const backupBranch = `backup-pre-update-${local}`;
+      try {
+        git('branch', backupBranch);
+        console.log(`Backup branch created: ${backupBranch}`);
+      } catch {
+        console.log(`Backup branch already exists (${backupBranch}), continuing...`);
+      }
     }
 
-    // 2. Fetch from canonical repo
+    // 2. Fetch from canonical repo (always — read-only network op).
     console.log('Fetching latest from upstream...');
     git('fetch', CANONICAL_REPO, 'main');
 
@@ -324,26 +438,100 @@ async function apply() {
       }
     }
 
+    // Translated upstream sync (LostAndLucky Fix 3). For each upstream
+    // path the fork tracks, read its content from FETCH_HEAD and write
+    // it to the mapped local path. This preserves the fork's folder
+    // layout while flowing upstream improvements in.
     const skipped = [];
-    for (const path of SYSTEM_PATHS) {
-      // Skip fork-modified files unless user passed --force. Without this,
-      // apply() would silently clobber Phase 7 changes to update-system.mjs,
-      // test-all.mjs, and scan.mjs. See FORK_OVERRIDES at top of file.
-      if (!force && FORK_OVERRIDES.includes(path)) {
-        skipped.push(path);
+    const changes = [];  // dry-run preview entries
+    const notInUpstream = [];
+
+    for (const { upstream, local: localPath } of UPSTREAM_TRACKED_PATHS) {
+      // Skip fork-modified files unless --force.
+      if (!force && FORK_OVERRIDES.includes(localPath)) {
+        skipped.push({ upstream, local: localPath });
         continue;
       }
+
+      // Read upstream content via git show. Suppress stderr — `git show`
+      // emits `fatal: path 'X' does not exist in 'FETCH_HEAD'` to stderr
+      // for paths that exist in the fork but not upstream (e.g. files
+      // added on this branch but never PR'd back), and that noise would
+      // bleed through into otherwise-clean dry-run output.
+      let upstreamContent;
       try {
-        git('checkout', 'FETCH_HEAD', '--', path);
-        updated.push(path);
+        upstreamContent = execFileSync('git', ['show', `FETCH_HEAD:${upstream}`], {
+          cwd: ROOT, encoding: 'utf-8', timeout: 30000,
+          stdio: ['pipe', 'pipe', 'ignore'],
+        }).trim();
       } catch {
-        // File may not exist in remote (new additions), skip
+        notInUpstream.push(upstream);
+        continue;
       }
+
+      const absLocal = join(ROOT, localPath);
+      let oldContent = '';
+      try { oldContent = readFileSync(absLocal, 'utf-8'); } catch {}
+
+      if (oldContent === upstreamContent) {
+        continue;  // no change — skip silently
+      }
+
+      if (dryRun) {
+        changes.push({
+          upstream,
+          local: localPath,
+          action: oldContent ? 'modify' : 'create',
+          sizeDelta: upstreamContent.length - oldContent.length,
+        });
+      } else {
+        mkdirSync(dirname(absLocal), { recursive: true });
+        writeFileSync(absLocal, upstreamContent, 'utf-8');
+        updated.push(localPath);
+      }
+    }
+
+    // Bootstrap pass for tree-prefix paths from the legacy SYSTEM_PATHS
+    // (`.github/`, `templates/`, `fonts/`, `dashboard/`, etc. — directories
+    // we want to mirror wholesale from upstream). These don't fit the
+    // 1:1 path translation model.
+    const TREE_PREFIX_PATHS = ['.github/', '.agents/', '.claude/skills/', '.gemini/commands/', 'templates/', 'fonts/', 'docs/', 'dashboard/'];
+    for (const path of TREE_PREFIX_PATHS) {
+      if (!force && FORK_OVERRIDES.some(o => o.startsWith(path))) continue;
+      try {
+        if (!dryRun) {
+          git('checkout', 'FETCH_HEAD', '--', path);
+          updated.push(path);
+        }
+      } catch {
+        // Path may not exist in remote
+      }
+    }
+
+    if (dryRun) {
+      console.log('\n=== DRY RUN — no files written ===');
+      if (changes.length === 0) {
+        console.log('No upstream changes to apply.');
+      } else {
+        console.log(`Would update ${changes.length} file(s):\n`);
+        for (const c of changes) {
+          const arrow = c.upstream === c.local ? '' : ` (was upstream: ${c.upstream})`;
+          const sign = c.sizeDelta > 0 ? '+' : '';
+          console.log(`  [${c.action}] ${c.local}${arrow}  ${sign}${c.sizeDelta} bytes`);
+        }
+      }
+      if (skipped.length > 0) {
+        console.log(`\nWould skip ${skipped.length} fork-modified file(s) — use --force to override.`);
+      }
+      if (notInUpstream.length > 0) {
+        console.log(`\n${notInUpstream.length} tracked path(s) not present in upstream (likely renamed/deleted upstream-side).`);
+      }
+      return;
     }
 
     if (skipped.length > 0) {
       console.log(`\nSkipped ${skipped.length} fork-modified file(s):`);
-      for (const p of skipped) console.log(`  - ${p}`);
+      for (const s of skipped) console.log(`  - ${s.local}`);
       console.log(`Use \`node update-system.mjs apply --force\` to overwrite with upstream.`);
     }
 
@@ -437,8 +625,8 @@ async function apply() {
     console.log(`Rollback available: node update-system.mjs rollback`);
 
   } finally {
-    // Remove lock
-    if (existsSync(lockFile)) unlinkSync(lockFile);
+    // Remove lock (only created in non-dry-run)
+    if (!dryRun && existsSync(lockFile)) unlinkSync(lockFile);
   }
 }
 
