@@ -38,10 +38,10 @@ If the evaluation score from Step 1 is >= 4.0 AND the Codex CLI is installed (`c
 
 Ask once: "Run Codex review on the tailored CV? (extracts company language, flags weak bullets, scores resume vs JD)"
 
-If yes, follow `modes/codex-review.md`. The script call is:
+If yes, follow `agents/codex-reviewer/prompt.md` (LostAndLucky restructure moved this from the old `modes/codex-review.md` path in Phase 3). The script call is:
 
 ```bash
-node codex-review.mjs \
+node agents/codex-reviewer/runners/codex-review.mjs \
   --cv /tmp/cv-{candidate}-{company-slug}.html \
   --jd /tmp/codex-jd-{company-slug}.txt \
   --out reports/{###}-{company-slug}-{YYYY-MM-DD}-codex-review.md

@@ -43,7 +43,7 @@ You need two file paths:
 ### Step 2 — Run the script
 
 ```bash
-node codex-review.mjs \
+node agents/codex-reviewer/runners/codex-review.mjs \
   --cv /tmp/cv-{candidate}-{company-slug}.html \
   --jd /tmp/codex-jd-{slug}.txt \
   --out reports/{###}-{company-slug}-{YYYY-MM-DD}-codex-review.md
@@ -72,7 +72,7 @@ If the candidate provides answers, run the script again with `--answers`. Save t
 If the candidate approves the rewrites:
 1. Open the source CV HTML
 2. Replace the matched bullets with the rewrites from section 5
-3. Regenerate the PDF (`node generate-pdf.mjs ...`)
+3. Regenerate the PDF (`node generate-pdf.mjs ...` — or after Phase 5: `node agents/pdf-generator/runners/generate-pdf.mjs ...`)
 4. Note in the report that bullets were updated post-Codex-review
 
 **Never apply rewrites silently.** The candidate sees the rewrite table and approves before any CV file changes.

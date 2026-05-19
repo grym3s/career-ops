@@ -58,6 +58,27 @@ for (const f of mjsFiles) {
   }
 }
 
+// LostAndLucky-restructure agent runners (Phase 3+):
+// agents/{name}/runners/*.mjs. Discovered, not hardcoded, so new agents
+// auto-enroll in the syntax check as they're promoted.
+const agentsDir = join(ROOT, 'agents');
+if (existsSync(agentsDir)) {
+  for (const agent of readdirSync(agentsDir)) {
+    const runnersDir = join(agentsDir, agent, 'runners');
+    if (!existsSync(runnersDir)) continue;
+    for (const f of readdirSync(runnersDir)) {
+      if (!f.endsWith('.mjs')) continue;
+      const rel = `agents/${agent}/runners/${f}`;
+      const result = run('node', ['--check', rel]);
+      if (result !== null) {
+        pass(`${rel} syntax OK`);
+      } else {
+        fail(`${rel} has syntax errors`);
+      }
+    }
+  }
+}
+
 // ── 2. SCRIPT EXECUTION ─────────────────────────────────────────
 
 console.log('\n2. Script execution (graceful on empty data)');

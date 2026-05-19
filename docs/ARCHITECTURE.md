@@ -52,7 +52,7 @@ career-ops/
 │  ├─ batch.md                    Mass-process offers via batch-runner.sh
 │  ├─ pdf.md                      HTML-template CV generation
 │  ├─ latex.md                    LaTeX/Overleaf CV generation
-│  ├─ codex-review.md             [NEW] Post-CV second-opinion review via Codex CLI
+│  │                              (codex-review.md moved to agents/codex-reviewer/prompt.md in Phase 3)
 │  ├─ deep.md                     Deep company research
 │  ├─ contacto.md                 LinkedIn outreach drafts
 │  ├─ interview-prep.md           Company-specific interview intel
@@ -152,7 +152,7 @@ All are Node ESM (`.mjs`). Run with `node <script>.mjs [args]`.
 | `test-all.mjs` | 63+ checks run by CI on every PR. |
 | `update-system.mjs` | Self-updater — pulls system-layer changes from GitHub, leaves user layer untouched. |
 | `gemini-eval.mjs` | Second-opinion evaluator via Gemini (older sibling of the new codex-review pattern). |
-| `codex-review.mjs` | **[NEW]** Post-CV review via Codex CLI on ChatGPT OAuth. Reads CV + JD, asks for a 7-section critique. |
+| `agents/codex-reviewer/runners/codex-review.mjs` | Post-CV review via Codex CLI on ChatGPT OAuth. Reads CV + JD, asks for a 7-section critique. (Moved from `./codex-review.mjs` at root in LostAndLucky Phase 3.) |
 
 ## The main data flow
 
@@ -170,7 +170,7 @@ All are Node ESM (`.mjs`). Run with `node <script>.mjs [args]`.
    │  Step 2: Save report → reports/{###}-{slug}-{date}.md                    │
    │  Step 3: Generate PDF per modes/pdf.md or modes/latex.md                 │
    │           → /tmp/cv-{candidate}-{slug}.html → output/cv-…-{date}.pdf     │
-   │  Step 3.5 (NEW): Codex review per modes/codex-review.md                  │
+   │  Step 3.5: Codex review per agents/codex-reviewer/prompt.md              │
    │           → reports/{###}-{slug}-{date}-codex-review.md                  │
    │  Step 4: Draft application answers (only if score ≥ 4.5)                 │
    │  Step 5: Append to data/applications.md                                  │
@@ -196,8 +196,9 @@ Three files were added/modified:
 
 | File | Role |
 |------|------|
-| `codex-review.mjs` | Node script. Spawns `codex exec -m gpt-5.5 --sandbox read-only` with a 7-section prompt built from `--cv` + `--jd`. Captures stdout to `--out`. Configurable via env: `CODEX_BIN`, `CODEX_MODEL`, `CODEX_SANDBOX`. |
-| `modes/codex-review.md` | Skill prompt. Tells the AI when to invoke the script, how to wire inputs, and how to present the seven sections back to the candidate. |
+| `agents/codex-reviewer/runners/codex-review.mjs` | Node script. Spawns `codex exec -m gpt-5.5 --sandbox read-only` with a 7-section prompt built from `--cv` + `--jd`. Captures stdout to `--out`. Configurable via env: `CODEX_BIN`, `CODEX_MODEL`, `CODEX_SANDBOX`. |
+| `agents/codex-reviewer/prompt.md` | Skill prompt. Tells the AI when to invoke the script, how to wire inputs, and how to present the seven sections back to the candidate. |
+| `agents/codex-reviewer/CONTEXT.md` | Agent contract — inputs / outputs / failure modes / when-to-invoke. First agent on the LostAndLucky contract shape (Phase 3 POC). |
 | `modes/auto-pipeline.md` | Step 3.5 inserted between PDF generation and application-answer drafting. Score-gated at ≥ 4.0 to avoid burning cycles on offers you won't apply to. |
 
 **Prerequisites (verified on this host):** Codex CLI installed (`codex-cli 0.131.0`), ChatGPT OAuth session active (`codex login status` returns "Logged in using ChatGPT"), `model = "gpt-5.5"` set in `~/.codex/config.toml`.
