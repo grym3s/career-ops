@@ -29,8 +29,8 @@ Reading this file top-to-bottom shows how the system's thinking evolved.
 | 2 | wiki/ meta layer (decisions / open-questions / conflicts) | ⏳ in progress |
 | 3 | Promote `codex-reviewer` agent as the contract POC | ✅ committed (see below) |
 | 4 | Promote `evaluator` + `scanner` agents | ✅ committed (`252af9e`, `f1fa8c3`) |
-| 5 | Promote remaining 9 agents | ✅ committed (this commit) — 10 agents actually (training + project split into separate agents) |
-| 6 | `workflows/` first-class + `locales/` overlay refactor | pending |
+| 5 | Promote remaining 9 agents | ✅ committed `aeb5514` — 10 agents actually (training + project split into separate agents) |
+| 6 | `workflows/` first-class + `locales/` overlay refactor | ✅ committed (this commit) |
 | 7 | `me/` + `system/` + `outputs/` consolidation | pending |
 
 **What we're NOT changing.** The two-layer mental model (`AGENTS.md` user vs system rule), `update-system.mjs`'s `USER_PATHS` safety contract, `templates/states.yml` as canonical status source, `release-please`-managed `./CHANGELOG.md` at the root, the `.github/` CI workflows.
