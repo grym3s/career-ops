@@ -27,10 +27,10 @@ Include Block G in the saved report. Add **URL:** {url} and **Legitimacy:** {tie
 
 ## Step 3 — Generate PDF
 
-Read `config/profile.yml`. Check `cv.output_format`:
+Read `config/profile.yml` (legacy) or `me/profile.yml` (after Phase 7). Check `cv.output_format`:
 
-- If `"latex"`, execute the full pipeline from `modes/latex.md`
-- Otherwise (default), execute the full pipeline from `modes/pdf.md`
+- If `"latex"`, execute the full pipeline from `agents/pdf-generator/prompt-latex.md` (legacy fallback: `modes/latex.md`)
+- Otherwise (default), execute the full pipeline from `agents/pdf-generator/prompt.md` (legacy fallback: `modes/pdf.md`)
 
 ## Step 3.5 — Codex Review (optional, score >= 4.0)
 

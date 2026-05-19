@@ -28,8 +28,8 @@ Reading this file top-to-bottom shows how the system's thinking evolved.
 | 1 | Additive CONTEXT.md sweep (21 routers + AGENTS.md folder-routing note) | ✅ committed `cc96364` |
 | 2 | wiki/ meta layer (decisions / open-questions / conflicts) | ⏳ in progress |
 | 3 | Promote `codex-reviewer` agent as the contract POC | ✅ committed (see below) |
-| 4 | Promote `evaluator` + `scanner` agents | pending |
-| 5 | Promote remaining 9 agents | pending |
+| 4 | Promote `evaluator` + `scanner` agents | ✅ committed (`252af9e`, `f1fa8c3`) |
+| 5 | Promote remaining 9 agents | ✅ committed (this commit) — 10 agents actually (training + project split into separate agents) |
 | 6 | `workflows/` first-class + `locales/` overlay refactor | pending |
 | 7 | `me/` + `system/` + `outputs/` consolidation | pending |
 

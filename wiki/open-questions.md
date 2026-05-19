@@ -44,6 +44,16 @@ Today `providers/{greenhouse,ashby,lever}.mjs` lives at the repo root and is onl
 
 ---
 
+## Q-5 — Dashboard build verification requires Go installed locally
+
+**State.** Documented 2026-05-19 during Phase 4 verification.
+
+`test-all.mjs` Section 4 (`go build` of `dashboard/`) fails on developer machines without Go installed (`go` not on PATH and not at any standard install location). The restructure does not touch any files under `dashboard/`, so this is a pre-existing environmental gap, not a regression — but it means `node test-all.mjs` (full) is misleading on dev machines unless the developer has Go installed; only `node test-all.mjs --quick` (which skips Section 4) gives the true picture.
+
+**Recommendation.** Either (a) `test-all.mjs` Section 4 should detect Go's absence and `warn` rather than `fail` (changing 🔴 to 🟡), or (b) the `--quick` flag should be the default and full mode opt-in. Tracker added to Phase 7 cleanup scope.
+
+---
+
 ## Q-4 — `output/` vs `outputs/` naming after Phase 7
 
 **State.** Pending Phase 7.

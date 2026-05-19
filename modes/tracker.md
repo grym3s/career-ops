@@ -1,23 +1,7 @@
-# Modo: tracker — Tracker de Aplicaciones
+# Mode: tracker — moved (LostAndLucky restructure, Phase 5)
 
-Lee y muestra `data/applications.md`.
+This mode prompt moved to **`agents/tracker/prompt.md`**.
 
-**Formato del tracker:**
-```markdown
-| # | Fecha | Empresa | Rol | Score | Estado | PDF | Report |
-```
+**Load `agents/tracker/prompt.md` instead.** See `agents/tracker/CONTEXT.md` for the agent contract. The runner scripts (`merge-tracker.mjs`, `dedup-tracker.mjs`, `normalize-statuses.mjs`, `verify-pipeline.mjs`) still live at the repo root pending Phase 7.
 
-Estados posibles: `Evaluada` → `Aplicado` → `Respondido` → `Contacto` → `Entrevista` → `Oferta` / `Rechazada` / `Descartada` / `NO APLICAR`
-
-- `Aplicado` = el candidato envió su candidatura
-- `Respondido` = Un recruiter/empresa contactó y el candidato respondió (inbound)
-- `Contacto` = El candidato contactó proactivamente a alguien de la empresa (outbound, ej: LinkedIn power move)
-
-Si el usuario pide actualizar un estado, editar la fila correspondiente.
-
-Mostrar también estadísticas:
-- Total de aplicaciones
-- Por estado
-- Score promedio
-- % con PDF generado
-- % con report generado
+This stub will be removed in Phase 7.
