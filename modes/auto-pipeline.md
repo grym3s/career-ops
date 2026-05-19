@@ -18,11 +18,11 @@ If the input is a **URL** (not pasted JD text), follow this strategy to extract 
 
 ## Step 1 — A-G Evaluation
 
-Execute the same as the `oferta` mode (read `modes/oferta.md` for all A-F blocks + Block G Posting Legitimacy).
+Execute the same as the `evaluator` agent (read `agents/evaluator/prompt.md` for all A-F blocks + Block G Posting Legitimacy). Legacy path: `modes/oferta.md` is now a redirect stub pointing here.
 
 ## Step 2 — Save Report .md
 
-Save the full evaluation in `reports/{###}-{company-slug}-{YYYY-MM-DD}.md` (see format in `modes/oferta.md`).
+Save the full evaluation in `reports/{###}-{company-slug}-{YYYY-MM-DD}.md` (see format in `agents/evaluator/prompt.md`).
 Include Block G in the saved report. Add **URL:** {url} and **Legitimacy:** {tier} to the report header.
 
 ## Step 3 — Generate PDF
