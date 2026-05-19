@@ -1,66 +1,20 @@
-# agents/tracker/ — applications ledger maintenance
+# agents/tracker/
 
-Owns `data/applications.md` — the master tracker for every offer evaluated, applied to, or rejected. Reads / writes / dedupes / normalizes / verifies the ledger.
+Owns `data/applications.md` — the ledger. Merges batch results, dedups, normalizes statuses, verifies pipeline integrity.
 
-## Folder layout
+| Input | Used by | Notes |
+|---|---|---|
+| `data/applications.md` | all 4 scripts | The ledger (gitignored) |
+| `batch/tracker-additions/*.tsv` | merge-tracker | Pending merges |
+| `templates/states.yml` | normalize/verify | Canonical status enum |
+| `reports/` | verify-pipeline | Cross-reference check |
 
-```
-agents/tracker/
-├─ CONTEXT.md     (this file)
-├─ prompt.md      — query / update skill prompt (was modes/tracker.md)
-├─ runners/       — empty until Phase 7 (scripts still at root)
-├─ examples/
-└─ evals/
-```
+**Outputs.** Updated `data/applications.md`. Health report to stdout (verify-pipeline).
 
-**Runners (still at repo root pending Phase 7).** All four use `dirname(fileURLToPath(import.meta.url))` for path resolution to `data/applications.md`, `batch/tracker-additions/`, `templates/states.yml`.
-- `merge-tracker.mjs` — Folds `batch/tracker-additions/*.tsv` into `data/applications.md`. Handles col-5/col-6 swap.
-- `dedup-tracker.mjs` — Removes duplicate rows by (company, role).
-- `normalize-statuses.mjs` — Forces statuses to the canonical set in `templates/states.yml`.
-- `verify-pipeline.mjs` — Health check: reports have `**URL:**`, statuses are canonical, no dupes.
+**Composes with:** `agents/evaluator/` writes `Evaluated` rows; batch workers write TSVs.
 
-**Inputs.**
-- `data/applications.md` — the ledger (user layer, gitignored).
-- `batch/tracker-additions/*.tsv` — pending merges from batch workers.
-- `templates/states.yml` — canonical status enum.
+**Editing rules (CRITICAL):** Never hand-add NEW rows to `applications.md` — workers write TSVs, `merge-tracker.mjs` folds them in. You MAY edit existing rows (status / notes / score). Statuses MUST be canonical (see `templates/states.yml`).
 
-**Outputs.**
-- `data/applications.md` updated (merged / deduped / normalized).
-- Health report to stdout (verify-pipeline).
+**Failure modes:** non-canonical status (`normalize-statuses.mjs`) · duplicate row (`dedup-tracker.mjs`) · wrong TSV col order (see AGENTS.md "TSV Format") · missing report (`verify-pipeline.mjs` flags).
 
-**Dependencies.**
-- Internal: `templates/states.yml` (canonical statuses), `reports/` (verify-pipeline cross-references).
-- Composes with: `agents/evaluator/` (writes Evaluated rows), `workflows/batch-pipeline/` (writes via TSVs).
-
-**Failure modes.**
-
-| Failure | Fix |
-|---|---|
-| Non-canonical status appears in row | `node normalize-statuses.mjs` |
-| Duplicate row (same company+role) | `node dedup-tracker.mjs` |
-| TSV has wrong column order | Check `batch-prompt.md` "TSV Format" section in AGENTS.md |
-| Report referenced in tracker missing | `node verify-pipeline.mjs` will surface this |
-
-**When to invoke.**
-- User asks "what's the status of X?" / "how many apps so far?" / "what's in tracker?"
-- After a batch run completes → `node merge-tracker.mjs`.
-- Periodic health check → `node verify-pipeline.mjs`.
-
-**When NOT to invoke.**
-- User wants to see one specific evaluation — read `reports/{###}-{slug}-*.md` directly.
-- User wants a dashboard view — use `dashboard/` (Go TUI).
-
-## Critical editing rules
-
-1. **Never create NEW entries by hand-editing** `applications.md`. Batch workers write TSVs to `batch/tracker-additions/`; `merge-tracker.mjs` folds them in.
-2. You MAY edit existing entries to update status / notes / score.
-3. Statuses MUST be from `templates/states.yml`. No bold, no dates in status column, no extra text.
-
-See `AGENTS.md` "Canonical States" + "TSV Format" sections for the contract.
-
-## Related
-
-- The ledger this owns → `data/applications.md`
-- The dashboard that visualizes the ledger → `dashboard/`
-- The canonical status enum → `templates/states.yml`
-- Upstream writer (batch) → `workflows/batch-pipeline/` (Phase 6) / `batch/` (today)
+**Files:** `prompt.md` (skill), `merge-tracker.mjs`, `dedup-tracker.mjs`, `normalize-statuses.mjs`, `verify-pipeline.mjs`.

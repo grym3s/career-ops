@@ -1,48 +1,20 @@
-# agents/project-eval/ — portfolio project evaluation
+# agents/project-eval/
 
-Evaluates a portfolio project (build, write-up, case study) against the candidate's target archetypes. "Should I keep building / promoting this, or kill it?"
+Evaluates a portfolio project against target archetypes. "Should I keep building / promoting this, or kill it?"
 
-## Folder layout
+| Input | Required | Notes |
+|---|---|---|
+| Project description | yes | One paragraph + status |
+| Project URL / repo | optional | For deeper context |
+| `me/_profile.md` | yes | Target archetypes |
+| `article-digest.md` | auto | Check if already cited |
 
-```
-agents/project-eval/
-├─ CONTEXT.md     (this file)
-├─ prompt.md      — was modes/project.md
-├─ runners/       — empty (prompt-only)
-├─ examples/
-└─ evals/
-```
+**Outputs.** Markdown evaluation: which archetypes this proves, whether it's interview-grade, suggested 1-line summary for `article-digest.md`, suggested next milestones if not yet interview-grade.
 
-**Inputs.**
-- Project description (one paragraph + status).
-- Optional: project URL / repo for deeper context.
-- `me/_profile.md` for target archetypes.
-- `article-digest.md` (proof-point bank) — to see if this project is already cited there.
+**Gates.** User asks "should I keep building X?" / after completing a portfolio project (decide if it earns an `article-digest.md` slot).
 
-**Outputs.**
-- Markdown evaluation: which archetypes this proves, whether it's interview-grade, suggested 1-line summary for `article-digest.md`, suggested next milestones if it's not yet interview-grade.
+**Composes with:** `agents/evaluator/` (same framework), `agents/training-eval/` (sibling).
 
-**Dependencies.**
-- Optional external: WebFetch repo README or project page.
-- Internal: `me/_profile.md`, `article-digest.md`.
+**Failure modes:** project status unclear (ask "shipped"/"in progress"/"shelved") · private repo (use user-pasted description; note that public reviewability is part of the signal).
 
-**Failure modes.**
-
-| Failure | Fix |
-|---|---|
-| Project status unclear | Ask: "shipped" / "in progress" / "shelved" |
-| Repo private | Use user-pasted description; note that public reviewability is part of the signal |
-
-**When to invoke.**
-- User says "should I keep building X?" / "is this portfolio project worth the time?" / "/career-ops project".
-- After completing a portfolio project — to decide if it earns a slot in `article-digest.md`.
-
-**When NOT to invoke.**
-- The project is already cited in `cv.md` and is shipping — no need to re-evaluate.
-
-## Related
-
-- Sibling evaluator for jobs → `agents/evaluator/`
-- Sibling evaluator for courses → `agents/training-eval/`
-- Where proven projects land → `article-digest.md` (today) / `me/article-digest.md` (Phase 7)
-- Worked-example reference → `examples/dual-track-engineer-instructor/`
+**Files:** `prompt.md`. No runner.

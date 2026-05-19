@@ -1,60 +1,21 @@
-# agents/followup-planner/ — follow-up cadence
+# agents/followup-planner/
 
-Calculates when to follow up on an open application: based on submit date, status, last contact, archetype-specific cadence norms. Suggests the specific message angle (curious-not-pushy vs scope-clarifying vs decision-deadline).
+When to follow up on each open application. Archetype-specific cadence + suggested message angle (curious-not-pushy / scope-clarifying / decision-deadline).
 
-## Folder layout
+| Input | Used | Notes |
+|---|---|---|
+| `data/applications.md` | yes | Status + submit dates |
+| `data/follow-ups.md` | yes | Per-application contact history |
+| Cadence norms (in prompt) | yes | Archetype-specific |
 
-```
-agents/followup-planner/
-├─ CONTEXT.md     (this file)
-├─ prompt.md      — was modes/followup.md
-├─ runners/       — empty until Phase 7 (followup-cadence.mjs still at root)
-├─ examples/
-└─ evals/
-```
+**Outputs.** JSON per pending application: next-action date + angle + escalation flags.
 
-**Runner (still at repo root pending Phase 7).**
-- `followup-cadence.mjs` — Reads `data/follow-ups.md` + `data/applications.md`, emits JSON: per-application "next nudge by" dates, recommended angles, escalation flags.
+**Cadence defaults:** Applied → 7-10d → curious-not-pushy · first nudge → 10-14d → scope-clarifying · second → 14-21d → decision-deadline · after third no-response → archive `Discarded`.
 
-**Inputs.**
-- `data/applications.md` (status + dates).
-- `data/follow-ups.md` (per-application contact history).
-- Archetype-specific cadence norms (in prompt.md).
+**Gates.** User asks "who should I follow up with?" / weekly cadence. Skip if < 3 days since submit OR already in active interview.
 
-**Outputs.**
-- JSON to stdout (machine-readable).
-- For each pending application: recommended next-action date + suggested angle.
-- Escalation flags for applications past the standard cadence with no response.
+**Composes with:** `agents/contact-writer/` (drafts the actual message once cadence triggers).
 
-**Dependencies.**
-- Internal only.
-- Composes with: `agents/contact-writer/` (drafts the actual follow-up message once cadence triggers).
+**Failure modes:** `follow-ups.md` missing (treats every app as "no prior contact") · app has no submit date (skip with warning) · non-canonical status (run `normalize-statuses.mjs`).
 
-**Failure modes.**
-
-| Failure | Fix |
-|---|---|
-| `data/follow-ups.md` missing | Create empty file with header — agent treats every app as "no prior contact" |
-| Application has no submit date | Skip with warning — tracker should always have dates |
-| Status not canonical | Run `node normalize-statuses.mjs` first |
-
-**When to invoke.**
-- User says "who should I follow up with this week?" / "/career-ops followup".
-- Weekly cadence (manual today; could be `workflows/` scheduled job after Phase 6).
-
-**When NOT to invoke.**
-- < 3 days since application submitted — too early.
-- Already in active interview — different cadence rules.
-
-## Cadence defaults (in prompt.md)
-
-- Applied → 7-10 days → curious-not-pushy nudge
-- First nudge → 10-14 days → scope-clarifying or specific-question
-- Second nudge → 14-21 days → decision-deadline framing
-- After third no-response → archive as `Discarded`.
-
-## Related
-
-- The runner → `followup-cadence.mjs` at root (Phase 7 → here)
-- Message drafting after this surfaces a candidate → `agents/contact-writer/`
-- Source data → `data/follow-ups.md`, `data/applications.md`
+**Files:** `prompt.md`, `followup-cadence.mjs`.

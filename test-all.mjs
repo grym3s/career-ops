@@ -312,6 +312,8 @@ if (existsSync(agentsRoot)) {
     } else {
       fail(`Agent missing prompt: ${agent.name}/prompt.md`);
     }
+    // CONTEXT.md is now slim (~25 lines, post-fix cleanup). Still required
+    // as the agent's contract; check it exists but don't enforce min content.
     if (existsSync(contextPath)) {
       pass(`Agent has contract: ${agent.name}/CONTEXT.md`);
     } else {
