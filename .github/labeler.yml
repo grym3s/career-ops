@@ -2,41 +2,51 @@
   - changed-files:
       - any-glob-to-any-file:
           - CLAUDE.md
+          - CONTEXT.md
+          - AGENTS.md
+          - GEMINI.md
           - DATA_CONTRACT.md
           - modes/_shared.md
+          - modes/_profile.template.md
 
 "⚠️ agent-behavior":
   - changed-files:
       - any-glob-to-any-file:
+          # LostAndLucky agents and workflows
+          - agents/**/prompt.md
+          - agents/**/prompt-latex.md
+          - agents/**/compare.md
+          - agents/**/CONTEXT.md
+          - workflows/**/definition.md
+          - workflows/**/CONTEXT.md
+          # Locale overlays (agent + workflow prompts in non-English markets)
+          - locales/**/prompt.md
+          - locales/**/definition.md
+          - locales/*/_shared.md
+          # Remaining canonical mode files (now shared rules only)
           - modes/*.md
-          - modes/**/*.md
           - .claude/skills/**
 
 "🔧 scripts":
   - changed-files:
       - any-glob-to-any-file:
+          # Root scripts (user/CI-facing canonical)
           - "*.mjs"
+          # Agent runners (LostAndLucky Phase 7)
+          - agents/*/runners/**
           - batch/**
-
-"📄 docs":
-  - changed-files:
-      - any-glob-to-any-file:
-          - docs/**
-          - "README*.md"
-          - CONTRIBUTING.md
-          - GOVERNANCE.md
-          - CODE_OF_CONDUCT.md
-          - SECURITY.md
-          - SUPPORT.md
 
 "🌐 i18n":
   - changed-files:
       - any-glob-to-any-file:
           - "README.*.md"
-          - modes/de/**
-          - modes/fr/**
-          - modes/ja/**
-          - modes/ru/**
+          # Locales (LostAndLucky Phase 6 — was modes/{de,fr,ja,ru,pt,tr})
+          - locales/**
+
+"📜 wiki & decisions":
+  - changed-files:
+      - any-glob-to-any-file:
+          - wiki/**
 
 "📊 dashboard":
   - changed-files:
@@ -53,3 +63,14 @@
   - changed-files:
       - any-glob-to-any-file:
           - .github/**
+
+"📄 docs":
+  - changed-files:
+      - any-glob-to-any-file:
+          - docs/**
+          - "README*.md"
+          - CONTRIBUTING.md
+          - GOVERNANCE.md
+          - CODE_OF_CONDUCT.md
+          - SECURITY.md
+          - SUPPORT.md

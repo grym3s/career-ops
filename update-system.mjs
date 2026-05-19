@@ -82,6 +82,35 @@ const SYSTEM_PATHS = [
   'package.json',
 ];
 
+// Fork overrides — files THIS fork has intentionally modified vs upstream.
+// apply() skips these so fork-specific changes aren't clobbered on update.
+// Use `node update-system.mjs apply --force` to override and accept upstream.
+//
+// Each entry needs a comment explaining WHY it's locally modified, so future
+// maintainers can decide whether the fork modification is still load-bearing
+// or whether it's safe to drop the override and re-sync with upstream.
+//
+// Added in LostAndLucky Phase 7 (2026-05-19) — see wiki/decisions.md.
+const FORK_OVERRIDES = [
+  // SYSTEM_PATHS list rewritten for the LostAndLucky folder layout.
+  // Upstream still has the original flat-modes list; clobbering this would
+  // make apply() try to checkout modes/oferta.md etc. which no longer exist.
+  'update-system.mjs',
+
+  // Section 1 expanded to discover agents/*/runners/*.mjs; Section 2 paths
+  // updated to point at agents/tracker/runners/*; Section 5 systemFiles
+  // updated to point at agents/{evaluator,pdf-generator,scanner}/prompt.md;
+  // Section 8 replaced hardcoded expectedModes with a discovery loop over
+  // agents/ + workflows/. Upstream version would lose all of this.
+  'test-all.mjs',
+
+  // Root scan.mjs is now a thin shim wrapper that imports the canonical
+  // runner at agents/scanner/runners/scan.mjs. Upstream version is the
+  // original full script which would crash because it imports
+  // ./providers/_http.mjs which now lives at agents/scanner/providers/.
+  'scan.mjs',
+];
+
 // User layer paths — NEVER touch these (safety check).
 // LostAndLucky Phase 7 added me/ as the canonical user-layer folder.
 // Legacy paths kept for users who haven't migrated yet — the safety guard
@@ -246,6 +275,7 @@ async function check() {
 
 async function apply() {
   const local = localVersion();
+  const force = process.argv.includes('--force');
   const initialStatusPaths = new Set(gitStatusEntries().map(entry => entry.path));
 
   // Check for lock
@@ -294,13 +324,27 @@ async function apply() {
       }
     }
 
+    const skipped = [];
     for (const path of SYSTEM_PATHS) {
+      // Skip fork-modified files unless user passed --force. Without this,
+      // apply() would silently clobber Phase 7 changes to update-system.mjs,
+      // test-all.mjs, and scan.mjs. See FORK_OVERRIDES at top of file.
+      if (!force && FORK_OVERRIDES.includes(path)) {
+        skipped.push(path);
+        continue;
+      }
       try {
         git('checkout', 'FETCH_HEAD', '--', path);
         updated.push(path);
       } catch {
         // File may not exist in remote (new additions), skip
       }
+    }
+
+    if (skipped.length > 0) {
+      console.log(`\nSkipped ${skipped.length} fork-modified file(s):`);
+      for (const p of skipped) console.log(`  - ${p}`);
+      console.log(`Use \`node update-system.mjs apply --force\` to overwrite with upstream.`);
     }
 
     // 4. Validate: check NO user files were touched.
