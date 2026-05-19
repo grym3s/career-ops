@@ -9,7 +9,8 @@ The append-only narrative history of decisions, open questions, and known confli
 | `decisions.md` | **Append-only**, dated. Every architectural / pattern / policy decision with rationale. |
 | `open-questions.md` | Things known to be unresolved. Each entry has an ID (Q-N), state, and recommended path. |
 | `conflicts.md` | Where two decisions or rules collide and the resolution hasn't been written yet. |
-| `changelog.md` | What shipped, by version. Promoted from root `CHANGELOG.md`. |
+
+The auto-generated release changelog stays at root `./CHANGELOG.md` (owned by release-please via `release-please-config.json`). Don't move it — release automation hardcodes that path. `wiki/` is for **narrative** history; `CHANGELOG.md` is for **version** history.
 
 ## When to enter
 
