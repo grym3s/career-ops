@@ -84,12 +84,13 @@ if (existsSync(agentsDir)) {
 console.log('\n2. Script execution (graceful on empty data)');
 
 const scripts = [
-  { name: 'cv-sync-check.mjs', expectExit: 1, allowFail: true }, // fails without cv.md (normal in repo)
-  { name: 'verify-pipeline.mjs', expectExit: 0 },
-  { name: 'normalize-statuses.mjs', expectExit: 0 },
-  { name: 'dedup-tracker.mjs', expectExit: 0 },
-  { name: 'merge-tracker.mjs', expectExit: 0 },
-  { name: 'update-system.mjs check', expectExit: 0 },
+  { name: 'cv-sync-check.mjs', expectExit: 1, allowFail: true }, // fails without cv.md (normal in repo); still at root
+  // LostAndLucky Phase 7: tracker runners moved to agents/tracker/runners/
+  { name: 'agents/tracker/runners/verify-pipeline.mjs', expectExit: 0 },
+  { name: 'agents/tracker/runners/normalize-statuses.mjs', expectExit: 0 },
+  { name: 'agents/tracker/runners/dedup-tracker.mjs', expectExit: 0 },
+  { name: 'agents/tracker/runners/merge-tracker.mjs', expectExit: 0 },
+  { name: 'update-system.mjs check', expectExit: 0 }, // canonical root path — stays at root for user/CI stability
 ];
 
 for (const { name, allowFail } of scripts) {
@@ -176,11 +177,19 @@ if (!QUICK) {
 
 console.log('\n5. Data contract validation');
 
-// Check system files exist
+// Check system files exist.
+// LostAndLucky Phase 7: agent prompts moved from modes/{name}.md to
+// agents/{name}/prompt.md. Workflow prompts moved to workflows/{name}/definition.md.
 const systemFiles = [
   'CLAUDE.md', 'VERSION', 'DATA_CONTRACT.md',
+  // Canonical shared rules (still at modes/)
   'modes/_shared.md', 'modes/_profile.template.md',
-  'modes/oferta.md', 'modes/pdf.md', 'modes/scan.md',
+  // Promoted agents (representative sample — full discovery in Section 8)
+  'agents/evaluator/prompt.md',
+  'agents/pdf-generator/prompt.md',
+  'agents/scanner/prompt.md',
+  // Workflows
+  'workflows/auto-pipeline/definition.md',
   'templates/states.yml', 'templates/cv-template.html',
   '.claude/skills/career-ops/SKILL.md',
 ];
@@ -275,25 +284,66 @@ if (!absPathResult) {
   }
 }
 
-// ── 8. MODE FILE INTEGRITY ──────────────────────────────────────
+// ── 8. AGENT + WORKFLOW INTEGRITY (LostAndLucky Phase 7) ────────
 
-console.log('\n8. Mode file integrity');
+console.log('\n8. Agent + workflow integrity');
 
-const expectedModes = [
-  '_shared.md', '_profile.template.md', 'oferta.md', 'pdf.md', 'scan.md',
-  'batch.md', 'apply.md', 'auto-pipeline.md', 'contacto.md', 'deep.md',
-  'ofertas.md', 'pipeline.md', 'project.md', 'tracker.md', 'training.md',
-];
-
-for (const mode of expectedModes) {
-  if (fileExists(`modes/${mode}`)) {
-    pass(`Mode exists: ${mode}`);
+// Canonical shared rules still live at modes/ (not promoted to agents/).
+const sharedRules = ['_shared.md', '_profile.template.md'];
+for (const f of sharedRules) {
+  if (fileExists(`modes/${f}`)) {
+    pass(`Shared rule exists: modes/${f}`);
   } else {
-    fail(`Missing mode: ${mode}`);
+    fail(`Missing shared rule: modes/${f}`);
   }
 }
 
-// Check _shared.md references _profile.md
+// Discover all agents and verify each has prompt.md + CONTEXT.md.
+// Filter for directories — agents/CONTEXT.md is a file (router for the agents/ folder), not an agent.
+const agentsRoot = join(ROOT, 'agents');
+if (existsSync(agentsRoot)) {
+  for (const agent of readdirSync(agentsRoot, { withFileTypes: true })) {
+    if (!agent.isDirectory()) continue;
+    const agentDir = join(agentsRoot, agent.name);
+    const promptPath = join(agentDir, 'prompt.md');
+    const contextPath = join(agentDir, 'CONTEXT.md');
+    if (existsSync(promptPath)) {
+      pass(`Agent has prompt: ${agent.name}/prompt.md`);
+    } else {
+      fail(`Agent missing prompt: ${agent.name}/prompt.md`);
+    }
+    if (existsSync(contextPath)) {
+      pass(`Agent has contract: ${agent.name}/CONTEXT.md`);
+    } else {
+      fail(`Agent missing contract: ${agent.name}/CONTEXT.md`);
+    }
+  }
+} else {
+  fail('agents/ directory missing');
+}
+
+// Discover all workflows and verify each has definition.md + CONTEXT.md.
+const workflowsRoot = join(ROOT, 'workflows');
+if (existsSync(workflowsRoot)) {
+  for (const wf of readdirSync(workflowsRoot, { withFileTypes: true })) {
+    if (!wf.isDirectory()) continue;
+    const wfDir = join(workflowsRoot, wf.name);
+    if (existsSync(join(wfDir, 'definition.md'))) {
+      pass(`Workflow has definition: ${wf.name}/definition.md`);
+    } else {
+      fail(`Workflow missing definition: ${wf.name}/definition.md`);
+    }
+    if (existsSync(join(wfDir, 'CONTEXT.md'))) {
+      pass(`Workflow has contract: ${wf.name}/CONTEXT.md`);
+    } else {
+      fail(`Workflow missing contract: ${wf.name}/CONTEXT.md`);
+    }
+  }
+} else {
+  fail('workflows/ directory missing');
+}
+
+// _shared.md still references _profile.md (user override file).
 const shared = readFile('modes/_shared.md');
 if (shared.includes('_profile.md')) {
   pass('_shared.md references _profile.md');

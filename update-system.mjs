@@ -27,50 +27,43 @@ const CANONICAL_REPO = 'https://github.com/santifer/career-ops.git';
 const RAW_VERSION_URL = 'https://raw.githubusercontent.com/santifer/career-ops/main/VERSION';
 const RELEASES_API = 'https://api.github.com/repos/santifer/career-ops/releases/latest';
 
-// System layer paths — ONLY these files get updated
+// System layer paths — ONLY these files get updated.
+// LostAndLucky restructure (2026-05-19, see wiki/decisions.md):
+//   - Agents now live under agents/{name}/ (prompt.md, CONTEXT.md, runners/, etc.).
+//   - Workflows under workflows/{name}/ (definition.md, CONTEXT.md).
+//   - Locales under locales/{lang}/ (overlay shape — was modes/{lang}/ clones).
+//   - Wiki narrative under wiki/.
+// Scripts that stay at root (canonical user/CI invocation points):
+//   update-system.mjs, test-all.mjs, doctor.mjs, cv-sync-check.mjs, scan.mjs (shim),
+//   check-liveness.mjs, liveness-core.mjs, gemini-eval.mjs.
 const SYSTEM_PATHS = [
+  // Shared rules (still canonical at modes/)
   'modes/_shared.md',
   'modes/_profile.template.md',
-  'modes/oferta.md',
-  'modes/pdf.md',
-  'modes/scan.md',
-  'modes/batch.md',
-  'modes/apply.md',
-  'modes/auto-pipeline.md',
-  'modes/contacto.md',
-  'modes/deep.md',
-  'modes/ofertas.md',
-  'modes/pipeline.md',
-  'modes/project.md',
-  'modes/tracker.md',
-  'modes/training.md',
-  'modes/latex.md',
-  'modes/de/',
-  'modes/fr/',
-  'modes/ja/',
-  'modes/pt/',
-  'modes/ru/',
+  // Root CONTEXT.md (project map / task router)
+  'CONTEXT.md',
+  // AI entry points
   'CLAUDE.md',
   'AGENTS.md',
   'GEMINI.md',
-  'generate-pdf.mjs',
-  'generate-latex.mjs',
-  'merge-tracker.mjs',
-  'verify-pipeline.mjs',
-  'dedup-tracker.mjs',
-  'normalize-statuses.mjs',
+  // First-class agents, workflows, locales, wiki (sweep entire trees)
+  'agents/',
+  'workflows/',
+  'locales/',
+  'wiki/',
+  // Root system scripts (kept at root for user/CI stability)
   'cv-sync-check.mjs',
   'update-system.mjs',
-  'scan.mjs',
+  'scan.mjs',           // shim wrapper; canonical runner at agents/scanner/runners/
   'doctor.mjs',
   'check-liveness.mjs',
   'liveness-core.mjs',
-  'analyze-patterns.mjs',
-  'followup-cadence.mjs',
   'gemini-eval.mjs',
   'test-all.mjs',
+  // Batch infrastructure (orchestrator + state)
   'batch/batch-prompt.md',
   'batch/batch-runner.sh',
+  // Other system layers
   'dashboard/',
   'templates/',
   'fonts/',
@@ -89,8 +82,14 @@ const SYSTEM_PATHS = [
   'package.json',
 ];
 
-// User layer paths — NEVER touch these (safety check)
+// User layer paths — NEVER touch these (safety check).
+// LostAndLucky Phase 7 added me/ as the canonical user-layer folder.
+// Legacy paths kept for users who haven't migrated yet — the safety guard
+// in apply() rejects updates that would touch any of these.
 const USER_PATHS = [
+  // LostAndLucky canonical location (Phase 7)
+  'me/',
+  // Legacy user-layer locations (still supported during migration)
   'cv.md',
   'config/profile.yml',
   'modes/_profile.md',
