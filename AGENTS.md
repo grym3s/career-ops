@@ -8,6 +8,14 @@ The portfolio that goes with this system is also open source: [cv-santiago](http
 
 **It will work out of the box, but it's designed to be made yours.** If the archetypes don't match your career, the modes are in the wrong language, or the scoring doesn't fit your priorities -- just ask. You (AI Agent) can edit the user's files. The user says "change the archetypes to data engineering roles" and you do it. That's the whole point.
 
+## Folder Routing (CONTEXT.md per folder)
+
+This repo is migrating to a LostAndLucky-style layout — every folder has its own `CONTEXT.md` that tells you what's inside and where to go next. **Read the relevant folder's `CONTEXT.md` before scanning the files inside it.** That's faster (smaller context window per turn) and more reliable (each `CONTEXT.md` lists current vs legacy paths during the phased migration).
+
+The root `CONTEXT.md` is the master task router: "What does the user want to do?" → which folder to enter. Start there when the task is ambiguous.
+
+Migration is phased and tracked in `wiki/decisions.md` (entry 2026-05-19). Both legacy paths (e.g. `modes/oferta.md`, `./scan.mjs`, `./cv.md`) and new paths (e.g. `agents/evaluator/`, `agents/scanner/`, `me/cv.md`) work during the transition — each folder's `CONTEXT.md` lists the current vs target location.
+
 ## Data Contract (CRITICAL)
 
 There are two layers. Read `DATA_CONTRACT.md` for the full list.
