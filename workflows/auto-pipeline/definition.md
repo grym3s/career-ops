@@ -41,7 +41,7 @@ Ask once: "Run Codex review on the tailored CV? (extracts company language, flag
 If yes, follow `agents/codex-reviewer/prompt.md` (LostAndLucky restructure moved this from the old `modes/codex-review.md` path in Phase 3). The script call is:
 
 ```bash
-node agents/codex-reviewer/runners/codex-review.mjs \
+node agents/codex-reviewer/codex-review.mjs \
   --cv /tmp/cv-{candidate}-{company-slug}.html \
   --jd /tmp/codex-jd-{company-slug}.txt \
   --out reports/{###}-{company-slug}-{YYYY-MM-DD}-codex-review.md

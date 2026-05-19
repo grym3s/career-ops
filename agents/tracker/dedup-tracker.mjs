@@ -13,11 +13,11 @@ import { readFileSync, writeFileSync, copyFileSync, existsSync, mkdirSync } from
 import { join, dirname, resolve } from 'path';
 import { fileURLToPath } from 'url';
 
-// LostAndLucky Phase 7: script moved from repo root to agents/tracker/runners/.
-// CAREER_OPS still needs to resolve to the repo root for data/applications.md
-// + templates/states.yml + reports/ lookups, so walk up 3 levels from this file.
+// LostAndLucky Phase 7 + post-fix: script lives at agents/tracker/{name}.mjs
+// after the runners/ subfolder was flattened away. CAREER_OPS = repo root,
+// reached by walking up 2 levels.
 const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
-const CAREER_OPS = resolve(SCRIPT_DIR, '..', '..', '..');
+const CAREER_OPS = resolve(SCRIPT_DIR, '..', '..');
 // Support both layouts: data/applications.md (boilerplate) and applications.md (original)
 const APPS_FILE = existsSync(join(CAREER_OPS, 'data/applications.md'))
   ? join(CAREER_OPS, 'data/applications.md')

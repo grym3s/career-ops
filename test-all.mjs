@@ -58,17 +58,17 @@ for (const f of mjsFiles) {
   }
 }
 
-// LostAndLucky-restructure agent runners (Phase 3+):
-// agents/{name}/runners/*.mjs. Discovered, not hardcoded, so new agents
-// auto-enroll in the syntax check as they're promoted.
+// Agent runner scripts (post-restructure post-fix): each agent owns
+// its .mjs scripts at agents/{name}/*.mjs (no runners/ subfolder).
+// Discovered, not hardcoded, so new agents auto-enroll.
 const agentsDir = join(ROOT, 'agents');
 if (existsSync(agentsDir)) {
-  for (const agent of readdirSync(agentsDir)) {
-    const runnersDir = join(agentsDir, agent, 'runners');
-    if (!existsSync(runnersDir)) continue;
-    for (const f of readdirSync(runnersDir)) {
+  for (const agent of readdirSync(agentsDir, { withFileTypes: true })) {
+    if (!agent.isDirectory()) continue;
+    const agentPath = join(agentsDir, agent.name);
+    for (const f of readdirSync(agentPath)) {
       if (!f.endsWith('.mjs')) continue;
-      const rel = `agents/${agent}/runners/${f}`;
+      const rel = `agents/${agent.name}/${f}`;
       const result = run('node', ['--check', rel]);
       if (result !== null) {
         pass(`${rel} syntax OK`);
@@ -85,11 +85,11 @@ console.log('\n2. Script execution (graceful on empty data)');
 
 const scripts = [
   { name: 'cv-sync-check.mjs', expectExit: 1, allowFail: true }, // fails without cv.md (normal in repo); still at root
-  // LostAndLucky Phase 7: tracker runners moved to agents/tracker/runners/
-  { name: 'agents/tracker/runners/verify-pipeline.mjs', expectExit: 0 },
-  { name: 'agents/tracker/runners/normalize-statuses.mjs', expectExit: 0 },
-  { name: 'agents/tracker/runners/dedup-tracker.mjs', expectExit: 0 },
-  { name: 'agents/tracker/runners/merge-tracker.mjs', expectExit: 0 },
+  // Tracker scripts at agents/tracker/ (runners/ subfolder flattened in post-restructure cleanup)
+  { name: 'agents/tracker/verify-pipeline.mjs', expectExit: 0 },
+  { name: 'agents/tracker/normalize-statuses.mjs', expectExit: 0 },
+  { name: 'agents/tracker/dedup-tracker.mjs', expectExit: 0 },
+  { name: 'agents/tracker/merge-tracker.mjs', expectExit: 0 },
   { name: 'update-system.mjs check', expectExit: 0 }, // canonical root path — stays at root for user/CI stability
 ];
 

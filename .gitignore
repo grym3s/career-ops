@@ -53,3 +53,4 @@ package-lock.json
 .swarm/
 ruvector.db
 .agentdb*
+.claude-flow/

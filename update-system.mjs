@@ -54,7 +54,7 @@ const SYSTEM_PATHS = [
   // Root system scripts (kept at root for user/CI stability)
   'cv-sync-check.mjs',
   'update-system.mjs',
-  'scan.mjs',           // shim wrapper; canonical runner at agents/scanner/runners/
+  'scan.mjs',           // shim wrapper; canonical runner at agents/scanner/scan.mjs
   'doctor.mjs',
   'check-liveness.mjs',
   'liveness-core.mjs',
@@ -97,17 +97,17 @@ const FORK_OVERRIDES = [
   // make apply() try to checkout modes/oferta.md etc. which no longer exist.
   'update-system.mjs',
 
-  // Section 1 expanded to discover agents/*/runners/*.mjs; Section 2 paths
-  // updated to point at agents/tracker/runners/*; Section 5 systemFiles
-  // updated to point at agents/{evaluator,pdf-generator,scanner}/prompt.md;
-  // Section 8 replaced hardcoded expectedModes with a discovery loop over
-  // agents/ + workflows/. Upstream version would lose all of this.
+  // Section 1 discovers agents/{name}/*.mjs; Section 2 paths point at
+  // agents/tracker/*; Section 5 systemFiles points at
+  // agents/{evaluator,pdf-generator,scanner}/prompt.md; Section 8 replaces
+  // hardcoded expectedModes with a discovery loop over agents/ + workflows/.
+  // Upstream version would lose all of this.
   'test-all.mjs',
 
   // Root scan.mjs is now a thin shim wrapper that imports the canonical
-  // runner at agents/scanner/runners/scan.mjs. Upstream version is the
-  // original full script which would crash because it imports
-  // ./providers/_http.mjs which now lives at agents/scanner/providers/.
+  // runner at agents/scanner/scan.mjs. Upstream version is the original
+  // full script which would crash because it imports ./providers/_http.mjs
+  // which now lives at agents/scanner/providers/.
   'scan.mjs',
 ];
 

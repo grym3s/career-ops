@@ -17,7 +17,7 @@ import { mkdirSync } from 'fs';
 import { fileURLToPath } from 'url';
 
 const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
-const __dirname = resolve(SCRIPT_DIR, '..', '..', '..');
+const __dirname = resolve(SCRIPT_DIR, '..', '..');
 
 // Ensure output directory exists (fresh setup)
 mkdirSync(resolve(__dirname, 'output'), { recursive: true });

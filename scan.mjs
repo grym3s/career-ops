@@ -2,7 +2,7 @@
 
 // scan.mjs — root-level shim (LostAndLucky restructure, Phase 4b)
 //
-// The real scanner lives at agents/scanner/runners/scan.mjs as part of the
+// The real scanner lives at agents/scanner/scan.mjs as part of the
 // LostAndLucky folder restructure (see wiki/decisions.md 2026-05-19).
 // This shim is kept so:
 //   - `node scan.mjs`     (legacy command) still works
@@ -14,4 +14,4 @@
 // Phase 7 will remove this shim once package.json + update-system + tests
 // are rewritten for the new path.
 
-import './agents/scanner/runners/scan.mjs';
+import './agents/scanner/scan.mjs';
