@@ -45,3 +45,8 @@ bun.lock
 .claude/memory/
 career-dashboard
 package-lock.json
+
+# Ruflo / agent-local artifacts (operational state, never commit)
+.swarm/
+ruvector.db
+.agentdb*

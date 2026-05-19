@@ -32,6 +32,25 @@ Read `config/profile.yml`. Check `cv.output_format`:
 - If `"latex"`, execute the full pipeline from `modes/latex.md`
 - Otherwise (default), execute the full pipeline from `modes/pdf.md`
 
+## Step 3.5 — Codex Review (optional, score >= 4.0)
+
+If the evaluation score from Step 1 is >= 4.0 AND the Codex CLI is installed (`codex --version` succeeds), offer a second-opinion review of the tailored resume.
+
+Ask once: "Run Codex review on the tailored CV? (extracts company language, flags weak bullets, scores resume vs JD)"
+
+If yes, follow `modes/codex-review.md`. The script call is:
+
+```bash
+node codex-review.mjs \
+  --cv /tmp/cv-{candidate}-{company-slug}.html \
+  --jd /tmp/codex-jd-{company-slug}.txt \
+  --out reports/{###}-{company-slug}-{YYYY-MM-DD}-codex-review.md
+```
+
+You may need to first write the JD text to `/tmp/codex-jd-{company-slug}.txt` if it isn't already on disk. After the review file is written, summarize the overall fit %, top weak bullets, and top quick fixes for the candidate before moving on.
+
+Skip this step silently if Codex is not installed, if the score is below 4.0, or if the candidate has previously declined Codex review in this session.
+
 ## Step 4 — Draft Application Answers (only if score >= 4.5)
 
 If the final score is >= 4.5, generate a draft of responses for the application form:
