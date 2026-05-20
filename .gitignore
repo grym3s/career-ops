@@ -54,3 +54,6 @@ package-lock.json
 ruvector.db
 .agentdb*
 .claude-flow/
+.playwright-mcp/memory/
+build-cvs.mjs
+.opencode/
