@@ -54,6 +54,14 @@ package-lock.json
 ruvector.db
 .agentdb*
 .claude-flow/
-.playwright-mcp/memory/
+.playwright-mcp/
+
+# Session-specific handoff doc (regenerated per session, never commit)
+HANDOFF.md
+memory/
 build-cvs.mjs
 .opencode/
+
+# Mac handoff bundle (user-layer state in transit, never commit)
+career-ops-userlayer-*.tar.gz
+mac-handoff-bundle/
