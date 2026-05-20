@@ -1,0 +1,36 @@
+// Syncthing ignore patterns for career-ops cross-machine share
+// Git stays local per machine; only working-tree state (tracked + gitignored user-layer) syncs.
+
+// Git internals (each machine has its own .git, pulls from same remotes)
+.git
+
+// Build / dependency artifacts (rebuild per-machine)
+node_modules
+package-lock.json
+bun.lock
+
+// Operational runtime state (machine-specific, frequent churn)
+.swarm
+.claude-flow
+.agentdb*
+ruvector.db
+.playwright-mcp
+.claude/worktrees
+.claude/settings.local.json
+
+// Cross-machine bundles (transport-only, don't replicate)
+career-ops-userlayer-*.tar.gz
+career-ops-parity-*.tar.gz
+career-ops-mac-results-*.tar.gz
+mac-handoff-bundle
+*.tar.gz
+
+// Update system locks (per-machine)
+.update-lock
+.update-dismissed
+
+// OS noise
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
