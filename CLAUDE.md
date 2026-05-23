@@ -1,5 +1,7 @@
 # Career-Ops -- AI Job Search Pipeline
 
+@~/Developer/browser-harness/SKILL.md
+
 ## Origin
 
 This system was built and used by [santifer](https://santifer.io) to evaluate 740+ job offers, generate 100+ tailored CVs, and land a Head of Applied AI role. The archetypes, scoring logic, negotiation scripts, and proof point structure all reflect his specific career search in AI/automation roles.
